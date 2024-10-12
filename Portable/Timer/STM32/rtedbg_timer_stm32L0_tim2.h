@@ -38,8 +38,8 @@ extern "C" {
 #if RTE_USE_LONG_TIMESTAMP != 0
 struct _tstamp64
 {
-    uint32_t l;    // Bottom and top part of the 64-bit timestamp
-    uint32_t h;
+    uint32_t l;    // Bottom part of the 64-bit timestamp
+    uint32_t h;    // Top part of the 64-bit timestamp
 } t_stamp;
 #endif // RTE_USE_LONG_TIMESTAMP != 0
 
@@ -84,16 +84,16 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 }
 
 
-#if (RTE_FMT_ID_BITS) != (32U - 16U - 1U)
-// Other values of number format ID bits are not possible for current implementation of this file
-#error "RTE_FMT_ID_BITS must be 15 for a 16-bit timer TIM2 and current implementation of this driver."
+#if (RTE_FMT_ID_BITS) < (32U - 16U - 1U)
+// Small values of number format ID bits not possible for current implementation of this driver
+#error "RTE_FMT_ID_BITS must be min. 15 for a 16-bit timer TIM2 and current implementation of this driver."
 #endif
 
 
 #if RTE_USE_LONG_TIMESTAMP != 0
 
 /*********************************************************************************
- * @brief  Writes a message with long time stamp to the buffer.
+ * @brief  Writes a message with long timestamp to the buffer.
  *         The low bits of the timestamp are included in the message words with the
  *         format ID. Only the higher 32 bits are transmitted in the message's
  *         data part.

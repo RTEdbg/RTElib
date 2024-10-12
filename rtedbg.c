@@ -24,7 +24,7 @@
     RTE_OPTIMIZE_CODE       // Optional custom compilation settings for the entire rtedbg.c file
 
 #if RTE_ENABLED != 0
-// Project specific includes - define them in the rtedbg_config.h
+// Project-specific includes - define them in the rtedbg_config.h
 #include RTE_TIMER_DRIVER   // Timestamp timer driver
 #include RTE_CPU_DRIVER     // Buffer space reservation macro specific to the CPU
 
@@ -64,6 +64,10 @@ rtedbg_t g_rtedbg RTE_DBG_RAM;  //!< Data structure with circular logging buffer
 
 RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t init_mode)
 {
+#if RTE_FILTER_OFF_ENABLED == 0
+	UNUSED(inital_filter_value);
+#endif
+
     uint32_t config_id = RTE_CONFIG_ID;                                     //lint !e9053
 #if RTE_SINGLE_SHOT_ENABLED != 0
     if ((init_mode & RTE_SINGLE_SHOT_LOGGING_IS_ACTIVE) != 0U)
@@ -76,12 +80,12 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t 
     // If g_rtedbg has not yet been initialized, clear the header and circular buffer.
     if ((g_rtedbg.rte_cfg != config_id) || (init_mode >= RTE_RESTART_LOGGING))
     {
-        /* Disabled logging so that no task logs data during initialization. */
+        /* Disable logging so that no task logs data during initialization. */
         g_rtedbg.filter = 0U;
         RTE_DATA_MEMORY_BARRIER();  // Make sure all CPU cores see the change.
 
         /* Initialize the g_rtedbg structure and buffer after a power-on reset or reboot. The
-         * circular buffer must be set to 0xFFFFFFFFFF. This is the only value that does not
+         * circular buffer must be set to 0xFFFFFFFF. This is the only value that does not
          * appear as normal data and enables the rtemsg data decoding software to detect that
          * part of the buffer has been reserved but not yet written to - e.g. because the task
          * logging data has been interrupted for a long time by higher priority tasks or services. */
@@ -101,7 +105,9 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t 
 
 #if (RTE_FILTER_OFF_ENABLED != 0) && (RTE_MSG_FILTERING_ENABLED != 0)
         g_rtedbg.filter = inital_filter_value;
+#if RTE_FIRMWARE_MAY_SET_FILTER == 1
         g_rtedbg.filter_copy = inital_filter_value;
+#endif
 #endif
         g_rtedbg.buf_index = 0U;
     }
@@ -109,11 +115,17 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t 
     g_rtedbg.rte_cfg = config_id;
     g_rtedbg.buffer_size = (uint32_t)(RTE_BUFFER_SIZE) + 4U;
 
-    // Set the time stamp frequency and the initialize the timestamp timer
+    // Set the timestamp frequency and initialize the timestamp timer
     g_rtedbg.timestamp_frequency = RTE_GET_TSTAMP_FREQUENCY();
     rte_init_timestamp_counter();
 
+#if RTE_FILTER_OFF_ENABLED != 0
     rte_set_filter(inital_filter_value);
+#else
+#if RTE_MSG_FILTERING_ENABLED != 0
+    g_rtedbg.filter = inital_filter_value;
+#endif
+#endif
 }
 
 
@@ -482,28 +494,28 @@ RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
                 data.w64 <<= 1U;
                 *data_packet = data.w32.data;
                 data_packet++;
-                //lint -fallthrough
+                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
             case 4U:
                 data.w32.data = *addr;
                 addr++;
                 data.w64 <<= 1U;
                 *data_packet = data.w32.data;
                 data_packet++;
-                //lint -fallthrough
+                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
             case 3U:
                 data.w32.data = *addr;
                 addr++;
                 data.w64 <<= 1U;
                 *data_packet = data.w32.data;
                 data_packet++;
-                //lint -fallthrough
+                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
             case 2U:
                 data.w32.data = *addr;
                 addr++;
                 data.w64 <<= 1U;
                 *data_packet = data.w32.data;
                 data_packet++;
-                //lint -fallthrough
+                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
             case 1U:
                 // Add the word with format ID and timestamp (and extended data bits in minimized mode)
 #if RTE_MINIMIZED_CODE_SIZE != 0
@@ -527,8 +539,8 @@ RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
 
 /********************************************************************************
  * @brief Log a message defined by address and size + timestamp/format ID.
- *        The maximum message length is either 255 bytes or RTE_MAX_SUBPACKETS * 16
- *        (whichever is less). The upper 8 bits of the last 32-bit data word
+ *        The maximum message length is either 255 bytes or (RTE_MAX_SUBPACKETS * 16) - 1
+ *        bytes (whichever is less). The upper 8 bits of the last 32-bit data word
  *        written to the circular buffer define the message length (in bytes).
  *
  * @param fmt_id   Format ID number - see the description of __rte_msg0().
@@ -592,13 +604,13 @@ RTE_OPTIM_LARGE void __rte_msgx(const uint32_t fmt_id,
             {
                 default:
                     data.w32.data = ((uint32_t)addr[3U]) << 24U;
-                    //lint -fallthrough
+                    RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
                 case 3:
                     data.w32.data |= ((uint32_t)addr[2U]) << 16U;
-                    //lint -fallthrough
+                    RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
                 case 2:
                     data.w32.data |= ((uint32_t)addr[1U]) << 8U;
-                    //lint -fallthrough
+                    RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
                 case 1:
                     data.w32.data |= (uint32_t)*addr;
                     break;
@@ -653,7 +665,7 @@ RTE_OPTIM_SIZE void __rte_string(const uint32_t fmt_id, const char * const addre
  *
  * @param fmt_id   Format ID number - see the description of __rte_msg0().
  * @param address  String start address
- * @param max_len  Maximum message length to be stored in the circular buffer
+ * @param max_length  Maximum message length to be stored in the circular buffer
  ********************************************************************************/
 
 RTE_OPTIM_SPEED void __rte_stringn(const uint32_t fmt_id,
@@ -682,20 +694,20 @@ RTE_OPTIM_SPEED void __rte_stringn(const uint32_t fmt_id,
  * @brief Set the filter mask to enable/disable up to 32 message groups simultaneously.
  *        To completely disable data logging, set the filter value to zero. If simple
  *        re-enable is disabled with RTE_FILTER_OFF_ENABLED = 1, the filter must
- *        be re-enabled with a filter value RTE_FORCE_ENABLE_FILTER before proceeding.
- *        RTE_FORCE_ENABLE_FILTER enables the logging of all messages by setting the
+ *        be re-enabled with a filter value RTE_FORCE_ENABLE_ALL_FILTERS before proceeding.
+ *        RTE_FORCE_ENABLE_ALL_FILTERS enables the logging of all messages by setting the
  *        filter variable to 0xFFFFFFFF. Once the filter is re-enabled (i.e. is no
  *        longer zero), any filter value can be set by calling this function.
  *
- * @param  new_value  New message filter value
+ * @param  filter  New message filter value
  ********************************************************************************/
 
 RTE_OPTIM_SIZE void rte_set_filter(const uint32_t filter)
 {
     uint32_t new_value = filter;
 #if RTE_FILTER_OFF_ENABLED != 0
-    RTE_DATA_MEMORY_BARRIER();          // Make sure we see the changes from all CPU cores.
-    if (g_rtedbg.filter == 0U)          // 0 - message filters completely disabled?
+    RTE_DATA_MEMORY_BARRIER();          // Ensure visibility of changes across all CPU cores.
+    if (g_rtedbg.filter == 0U)          // Are message filters completely disabled?
     {
         if (new_value != RTE_FORCE_ENABLE_ALL_FILTERS) // Enable even if completely disabled?
         {
@@ -706,13 +718,13 @@ RTE_OPTIM_SIZE void rte_set_filter(const uint32_t filter)
 
     if (new_value != 0U)
     {
-        // Filter #0 cannot be disable unless all the other filters are also disabled.
+        // Filter #0 cannot be disabled unless all other filters are also disabled.
         new_value |= ~(uint32_t)RTE_FORCE_ENABLE_ALL_FILTERS;
-        g_rtedbg.filter_copy = new_value;   // Remember the last non-zero filter value
+        g_rtedbg.filter_copy = new_value;   // Store the last non-zero filter value
     }
 
     g_rtedbg.filter = new_value;
-    RTE_DATA_MEMORY_BARRIER();          // Make sure all CPU cores see the change.
+    RTE_DATA_MEMORY_BARRIER();          // Ensure visibility of changes across all CPU cores.
 }
 
 
@@ -724,7 +736,7 @@ RTE_OPTIM_SIZE void rte_set_filter(const uint32_t filter)
 RTE_OPTIM_SIZE void rte_restore_filter(void)
 {
     g_rtedbg.filter = g_rtedbg.filter_copy;
-    RTE_DATA_MEMORY_BARRIER();          // Make sure all CPU cores see the change.
+    RTE_DATA_MEMORY_BARRIER();          // Ensure visibility of changes across all CPU cores.
 }
 #endif // RTE_FIRMWARE_MAY_SET_FILTER != 0
 
@@ -737,7 +749,7 @@ RTE_OPTIM_SIZE void rte_restore_filter(void)
 
 RTE_OPTIM_SIZE uint32_t rte_get_filter(void)
 {
-    RTE_DATA_MEMORY_BARRIER();          // Make sure we see the changes from all CPU cores.
+    RTE_DATA_MEMORY_BARRIER();          // Ensure visibility of changes across all CPU cores.
     return g_rtedbg.filter;
 }
 

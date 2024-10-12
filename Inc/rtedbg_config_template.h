@@ -76,7 +76,7 @@ extern "C" {
 
 #define RTE_MAX_SUBPACKETS              16
   /* The maximum number of data subpackets in a message determines the maximum message size.
-   * Length of a subpacket is four 32-bit words words plus one FMT word.
+   * Length of a subpacket is four 32-bit words plus one FMT word.
    * Maximum logged message length for __rte_msgn() in bytes = RTE_MAX_SUBPACKETS * 16.
    * This parameter must be equal to or greater than the largest data structure to be logged
    * with a call to RTE_MSGN() or RTE_MSGX() macros.
@@ -101,7 +101,7 @@ extern "C" {
   /* 1 - The rte_set_filter(), rte_get_filter() and rte_restore_filter() functions
    *     are available to the programmer.
    * 0 - The g_rtedbg.filter variable can only be set through the debugger interface or
-   *     by calling the by calling the rte_init() function.
+   *     by calling the rte_init() function.
    */
 
 #define RTE_MINIMIZED_CODE_SIZE           0
@@ -141,7 +141,7 @@ extern "C" {
    *     testing/debugging.
    */
 
-#define RTE_DISCARD_TOO_LONG_MESSAGES     0
+#define RTE_DISCARD_TOO_LONG_MESSAGES     1
   /* 1 - Discard messages that are longer than the maximum allowed.
    * 0 - Shorten messages that are too long to the maximum size.
    */

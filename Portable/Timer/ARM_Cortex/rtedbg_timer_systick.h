@@ -8,7 +8,14 @@
  * @file    rtedbg_timer_systick.h
  * @author  Branko Premzel
  * @brief   Time measurement for the data logging functions using the SYSTICK timer.
- *          ARM Cortex SYSTICK is a 24-bit down counter.
+ *          ARM Cortex SYSTICK is a 24-bit down counter. The driver reverses the value.
+ *
+ * @note    If an MPU-protected version of the RTOS is used, no task (even a
+ *          privileged one) has access to system peripherals such as the ARM
+ *          Cortex-M CPU cycle counter (CYCCNT) or the system clock timer (SYSTICK),
+ *          even if the memory area containing the cycle counter or systick is
+ *          enabled for that task. Attempts to access these registers from unprivileged
+ *          code result in HardFault exception.
  *
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  **********************************************************************************/
@@ -42,7 +49,7 @@ __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
 {
     SysTick->LOAD  = 0x00FFFFFFUL;                  /* Set the reload register */
 //    SysTick->VAL   = 0UL;                           /* Load the SysTick Counter Value */
-// The counter is reset to zero after reset accordingly to the description in
+// The counter is reset to zero after reset according to the description in
 // "https://developer.arm.com/documentation/ddi0413/d/system-control/system-control-register-descriptions/systick-current-value-register"
 // Reset the counter with the firmware if it is more convenient for testing your application.
     SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |   /* Use the CPU core clock and */
@@ -67,7 +74,7 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 
 
 #if (RTE_TIMESTAMP_SHIFT) > (24U - 1U - (RTE_FMT_ID_BITS))
-#error "The value of RTE_TIMESTAMP_SHIFT too large"
+#error "The value of RTE_TIMESTAMP_SHIFT is too large"
 /* The maximum value is limited since it has to be ensured that the top bit of the
  * timestamp will change when the Systick counter counts. If the RTE_TIMESTAMP_SHIFT
  * value would be too large then the top bit would always be zero and the host based
@@ -80,7 +87,7 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 #if RTE_USE_LONG_TIMESTAMP != 0
 
 /*********************************************************************************
- * @brief  Writes a message with long time stamp to the buffer.
+ * @brief  Writes a message with long timestamp to the buffer.
  *         The low bits of the timestamp are included in the message words with the
  *         format ID. Only the higher 32 bits are transmitted in the message's
  *         data part.

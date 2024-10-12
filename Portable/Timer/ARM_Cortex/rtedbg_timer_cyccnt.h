@@ -11,6 +11,13 @@
  *          cycle counter integrated into the Cortex M CPU core. CYCCNT is
  *          available for devices with cores such as Cortex M3, M4, M7, M33.
  *
+ * @note    If an MPU-protected version of the RTOS is used, no task (even a
+ *          privileged one) has access to system peripherals such as the ARM
+ *          Cortex-M CPU cycle counter (CYCCNT) or the system clock timer (SYSTICK),
+ *          even if the memory area containing the cycle counter or systick is
+ *          enabled for that task. Attempts to access these registers from unprivileged
+ *          code result in HardFault exception.
+ *
  * @note    The value of the processor cycle counter does not increment while
  *          the ARM Cortex M core is in sleep mode. The cycle counter is only
  *          incremented when the core is active and executing instructions.
@@ -43,7 +50,7 @@ struct _tstamp64
 
 
 /***
- * @brief Initialize the peripheral for the time stamp counter and reset the counter.
+ * @brief Initialize the peripheral for the timestamp counter and reset the counter.
  */
 
 __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
@@ -73,7 +80,7 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 #if RTE_USE_LONG_TIMESTAMP != 0
 
 /*********************************************************************************
- * @brief Writes a message with long time stamp to the buffer.
+ * @brief Writes a message with long timestamp to the buffer.
  *        The low bits of the timestamp are included in the message words with the
  *        format ID. Only the higher 32 bits are transmitted in the message's
  *        data part.

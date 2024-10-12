@@ -326,7 +326,7 @@ __STATIC_FORCEINLINE uint32_t double_par(const double number)
 #endif
 
 #if defined(RTE_USE_ANY_TYPE_UNION) && !defined(__cplusplus)
-/* union defined to avoid built-in type conversions between function calls in RTE_MSG_().
+/* Union defined to avoid built-in type conversions between function calls in RTE_MSG_().
  * Example: The default type conversion converts a float value to an unsigned integer
  *          when "#define rte_any32_t uint32_t" is used.
  * This is also an indirect check if the data type fits uint32_t.
@@ -353,9 +353,9 @@ typedef union {
 #else  /* if defined RTE_USE_ANY_TYPE_UNION */
 
 /* If casting to union is not possible or allowed for your compiler, only casting to uint32_t
- * can be used. The use of a float value as parameter of the macro RTE_MSG_() is no longer
+ * can be used. The use of a float value as a parameter of the macro RTE_MSG_() is no longer
  * possible, because the type conversion to uint32_t converts the float value to an integer (it
- * strips the decimal part.
+ * strips the decimal part).
  * Use the functions float_par() and double_par() to "convert" the parameters of the logging 
  * function to "uint32_t" and log the float values at no extra cost.
  */
@@ -380,11 +380,11 @@ void __rte_msgx(const uint32_t fmt_id, volatile const void * const address, cons
 void __rte_string(const uint32_t fmt_id, const char * const address);
 void __rte_stringn(const uint32_t fmt_id, const char * const address, const uint32_t max_length);
 
-void rte_init(const uint32_t inital_filter_value, const uint32_t init_mode);
+void rte_init(const uint32_t initial_filter_value, const uint32_t init_mode);
 uint32_t rte_get_filter(void);
 
 /********************************************************************************
- * @brief  Restart of the time measurement - i.e. after the system reboot from the sleep mode.
+ * @brief  Restart the time measurement - i.e. after the system reboots from sleep mode.
  *         The restart is indicated by the long timestamp value of 0xFFFFFFFFU.
  *         It tells the RTEmsg data decoding application that the following timestamps
  *         are not continuations of previous ones.

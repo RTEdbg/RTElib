@@ -171,7 +171,8 @@ typedef struct
          *   can restore the value after logging is paused, for example, to send a
          *   snapshot of the logging buffer to the host.
          * Note: The value is valid when the firmware manipulates the message filter,
-         *       not when it is manipulated by a debug probe.
+         *       not when it is manipulated by a debug probe. As a rule, the debug
+         *       probe only sets the filter variable and not filter_copy.
          */
     uint32_t buffer_size;
         /*!< The size of the circular data logging buffer  (RTE_BUFFER_SIZE + 4).
@@ -236,6 +237,23 @@ typedef union
 #if (RTE_BUFFER_SIZE) < (((RTE_MAX_SUBPACKETS) * 5U) * 4U)
 #error "The buffer should be at least four times the size of the largest message."
 #endif
+
+#if RTE_MSG_FILTERING_ENABLED == 0
+#if (RTE_FILTER_OFF_ENABLED != 0) || (RTE_FIRMWARE_MAY_SET_FILTER != 0)
+#error "All filter-related definitions must be zero when message filtering is disabled."
+#endif
+#endif
+
+/* Suppress fallthrough warnings (some compilers accept the 'fallthrough' comment) */
+#if defined __has_attribute
+#if __has_attribute(fallthrough)
+#define RTE_FALLTHROUGH __attribute__((fallthrough))  // Compiler supports __attribute__
+#else
+#define RTE_FALLTHROUGH  // Compiler does not support __attribute__((fallthrough))
+#endif
+#else
+#define RTE_FALLTHROUGH  // Compiler might not support preprocessor checks for attributes
+#endif  // defined __has_attribute
 
 #endif /* RTEDBG_INT_H */
 

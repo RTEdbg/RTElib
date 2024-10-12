@@ -27,9 +27,8 @@ extern "C" {
 #include "rtedbg.h"
 
 #define RTE_TIMESTAMP_COUNTER_BITS  32U  // Number of timer counter bits available for the timestamp
-#define RTE_TIMESTAMP_PRESCALER     32U
-    // Divide 64 MHz clock by (32 * 2) to get a 1 us timestamp resolution.
-    // Additional division by 2 is due to implementation of data logging functions
+#define RTE_TIMESTAMP_PRESCALER     32U  // Divide 64 MHz clock by (32 * 2) to get a 1 us timestamp resolution.
+                                         // Additional division by 2 is due to implementation of data logging functions
 
 
 #if RTE_USE_LONG_TIMESTAMP != 0
@@ -80,7 +79,7 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 #if RTE_USE_LONG_TIMESTAMP != 0
 
 /*********************************************************************************
- * @brief  Writes a message with long time stamp to the buffer.
+ * @brief  Writes a message with long timestamp to the buffer.
  *         The low bits of the timestamp are included in the message words with the
  *         format ID. Only the higher 32 bits are transmitted in the message's
  *         data part.

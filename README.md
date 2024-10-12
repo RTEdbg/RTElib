@@ -14,15 +14,24 @@ Data logging functions are reentrant and do not disable interrupts if the microc
 
 All data logging functions are contained in the file *rtedbg.c*. See the comments for details and additional description in the document "*How the Data Logging is Implemented in the RTEdbg Library.pdf*" - see folder RTEdbg/Doc in the distribution ZIP file.
 
+**The library is ready for use** on devices with an ARM Cortex-M core and other little-endian 32-bit devices. To port the RTEdbg library to a new microcontroller family, use one of the two generic drivers suitable for the CPU core (preferably the *rtedbg_generic_atomic.h* if the core supports atomic/mutex instructions) and add a timestamp timer driver suitable for your hardware.
+
 ## How to contribute or get help
-Follow the [Contributing Guidelines](https://github.com/RTEdbg/RTEdbg/blob/master/Docs/CONTRIBUTING.md) for bug reports and feature requests regarding the RTEdbg library. 
+Follow the [Contributing Guidelines](https://github.com/RTEdbg/RTEdbg/blob/master/docs/CONTRIBUTING.md) for bug reports and feature requests regarding the RTEdbg library. 
 Please use [RTEdbg.freeforums.net](https://rtedbg.freeforums.net/) for general discussions about the RTEdbg toolkit.
 
 When asking a support question, be clear and take the time to explain your problem properly. If your problem is not strictly related to this project, we recommend that you use [Stack Overflow](https://stackoverflow.com/) or similar forums instead. First, check if the [RTEdbg manual](https://github.com/RTEdbg/RTEdbg/releases/download/Documentation/RTEdbg.library.and.tools.manual.pdf) already contains an answer to your question or a solution to your problem.
 
 ## Repository Structure
-This repository contains the RTEdbg data logging library only. See the **[RTEdbg main repository](https://github.com/RTEdbg/RTEdbg)** for links to all RTEdbg repositories &Rightarrow; *Repository Structure*.
+This repository contains the RTEdbg data logging library. The complete data logging code is in the file 'rtedbg.c'. Copy it into your project. <br>
+The subfolders contain the following:
+* **Inc:** Header files that must be included in your project. Rename 'rtedbg_config_template.h' to 'rtedbg_config.h' and modify it to suit your needs. A 'rtedbg_config.h' from one of the demo projects can also be used as a starting point (if the particular demo project is similar to yours).
+* **Portable:** Header files with the CPU-specific and timestamp timer-specific drivers. Add only one driver from each group to your project. Modify the driver to meet your project's requirements if an exact match is not found. <br>
+See also the Readme.md files in the subfolders for additional documentation.
+* **Fmt:** Format definition header files that must be added to your project.
 
-The author put great emphasis on robustness and low complexity of the RTEdbg library and RTEmsg data decoding application code. Please report bugs or suggest improvements / corrections. Most of the toolkit code is contained in host tools such as the RTEmsg (binary data decoding tool) application that runs on the host computer.
+See the **[RTEdbg main repository](https://github.com/RTEdbg/RTEdbg)** (&Rightarrow; *Repository Structure*) for links to all RTEdbg repositories that ar part of the RTEdbg toolkit.
+
+The author put great emphasis on robustness and low complexity of the RTEdbg library and RTEmsg data decoding application code. Please report bugs or suggest improvements / corrections. Most of the toolkit code is contained in host tools such as the RTEmsg (binary data decoding tool) application that runs on the host computer. See the list of **[Repositories](https://github.com/RTEdbg/RTEdbg/blob/master/README.md#Repository-Structure)** that are part of the RTEdbg toolkit.
 
 **Note:** The code is documented in Doxygen style. However, the project is not ready to automatically generate documentation with Doxygen.

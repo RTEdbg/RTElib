@@ -1,4 +1,4 @@
-## Mandatory format definition files and samples for the Cortex-M
+## Mandatory format definition files
 
 This folder contains the format definition files.
 The following two are mandatory and must be included in every project:
