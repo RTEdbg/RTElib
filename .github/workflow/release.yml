@@ -1,0 +1,35 @@
+name: Release Workflow
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get tag name
+        id: get_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Replace development branch placeholder
+        run: |
+          find . -type f -exec sed -i 's/<DEVELOPMENT BRANCH>/${{ steps.get_tag.outputs.TAG_NAME }}/g' {} +
+
+      - name: Zip project files
+        run: |
+          zip -r ${{ github.event.repository.name }}_${{ steps.get_tag.outputs.TAG_NAME }}.zip . -x "*.git*"
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ github.event.repository.name }}_${{ steps.get_tag.outputs.TAG_NAME }}.zip
+          name: Release ${{ steps.get_tag.outputs.TAG_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
