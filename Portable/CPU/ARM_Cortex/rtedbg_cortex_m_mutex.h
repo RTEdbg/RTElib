@@ -14,6 +14,15 @@
  *         (e.g. M3/M4/M7/M55/M85/M33). Use 'rtedbg_generic_irq_disable.h' for
  *         all ARM Cortex M cores that do not support mutex instructions.
  *
+ * @note   This driver version is suitable for single-core devices or multi-core
+ *         devices where data logging is performed for only one core or separately
+ *         for each of the cores.
+ *         Use the generic symmetric multi-core device driver with support for 
+ *         the atomic operations library in "rtedbg_generic_atomic_smp.h" and follow
+ *         the instructions in the readme and RTEdbg manual if you plan to use a
+ *         common g_rtedbg data logging structure for all of the CPU cores. Also
+ *         follow processor family memory sharing instructions.
+ *
  * @note   RTE_RESERVE_SPACE is defined as a macro instead of an inline function
  *         because the compiler typically generates smaller code when single-shot
  *         logging is enabled.
@@ -37,13 +46,11 @@ do {                                                                        \
     uint32_t new_index;                                                     \
     do                                                                      \
     {                                                                       \
-        RTE_DATA_MEMORY_BARRIER(); /* To see changes from all CPU cores */  \
         buf_idx = __LDREXW(&ptr->buf_index);                                \
         RTE_LIMIT_INDEX(buf_idx)                                            \
         new_index = buf_idx + (size);                                       \
     }                                                                       \
     while (__STREXW(new_index, &ptr->buf_index) != 0);                      \
-    RTE_DATA_MEMORY_BARRIER(); /* Make sure all CPU cores see the change. */\
 } while(0)
 
 #else   /* RTE_SINGLE_SHOT_ENABLED == 1 */
@@ -57,7 +64,6 @@ do {                                                                        \
     uint32_t new_index;                                                     \
     do                                                                      \
     {                                                                       \
-        RTE_DATA_MEMORY_BARRIER(); /* To see changes from all CPU cores */  \
         buf_idx = __LDREXW(&ptr->buf_index);                                \
         if (ptr->rte_cfg & RTE_SINGLE_SHOT_LOGGING_IS_ACTIVE)               \
         {                                                                   \
@@ -73,7 +79,6 @@ do {                                                                        \
         new_index = buf_idx + (size);                                       \
     }                                                                       \
     while (__STREXW(new_index, &ptr->buf_index) != 0);                      \
-    RTE_DATA_MEMORY_BARRIER(); /* Make sure all CPU cores see the change. */\
 } while(0)
 
 #endif /* RTE_SINGLE_SHOT_ENABLED == 0 */

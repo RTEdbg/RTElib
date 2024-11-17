@@ -12,7 +12,6 @@
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  *
  * @note This file has to be adapted to the particular embedded application hardware.
- *       The current driver version assumes a fixed CPU clock frequency.
  *       This is a minimalist version of the driver made without using the STM32 HAL
  *       or low level HAL functions.
  **********************************************************************************/
@@ -29,10 +28,6 @@ extern "C" {
 #define RTE_TIMESTAMP_COUNTER_BITS  17U  // Number of timer counter bits available for the timestamp
     // Note: The value is (16 + 1) since the 16-bit counter is shifted left by 1
     // in the rte_get_timestamp() function.
-
-#define RTE_TIMESTAMP_PRESCALER     8U
-    // Divide the 16 MHz clock by (8 * 2) to get a 1 us timestamp resolution.
-    // Additional division by 2 is due to implementation of data logging functions
 
 
 #if RTE_USE_LONG_TIMESTAMP != 0
@@ -59,8 +54,11 @@ __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
     CLEAR_BIT(RCC->APB1RSTR, RCC_APB1ENR_TIM2EN);
 
     // Set only the registers which must have values different from reset.
-    TIM2->PSC = RTE_TIMESTAMP_PRESCALER - 1;
+    TIM2->PSC = (RTE_TIMESTAMP_PRESCALER) - 1;
     TIM2->CR1 = TIM_CR1_CEN;        // Enable the timer counter
+#if (RTE_TIMESTAMP_PRESCALER) != 1U
+    TIM2->EGR = TIM_EGR_UG;         // Reload the PSC with new value
+#endif
 
 #if RTE_USE_LONG_TIMESTAMP != 0
     t_stamp.l = t_stamp.h = 0;      // Reset the long timestamp
@@ -82,12 +80,6 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
     // be lost if the 16-bit value would not be shifted left.
     // The RTE_TIMESTAMP_COUNTER_BITS value must be 17 (16 + 1) because of this.
 }
-
-
-#if (RTE_FMT_ID_BITS) < (32U - 16U - 1U)
-// Small values of number format ID bits not possible for current implementation of this driver
-#error "RTE_FMT_ID_BITS must be min. 15 for a 16-bit timer TIM2 and current implementation of this driver."
-#endif
 
 
 #if RTE_USE_LONG_TIMESTAMP != 0

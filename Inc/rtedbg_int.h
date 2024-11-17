@@ -218,12 +218,7 @@ typedef union
 #endif
 
 #ifndef RTE_DATA_MEMORY_BARRIER
-// An empty macro for systems where the memory barrier command is not required.
 #define RTE_DATA_MEMORY_BARRIER()
-#endif
-
-#if ((RTE_TIMESTAMP_SHIFT) - 1U) > (1U + (RTE_FMT_ID_BITS))
-#error "The timestamp must have enough resolution for its top bit to change."
 #endif
 
 #if (RTE_TIMESTAMP_SHIFT) < 1U

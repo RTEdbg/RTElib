@@ -65,7 +65,7 @@ rtedbg_t g_rtedbg RTE_DBG_RAM;  //!< Data structure with circular logging buffer
 RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t init_mode)
 {
 #if RTE_FILTER_OFF_ENABLED == 0
-	UNUSED(inital_filter_value);
+    UNUSED(inital_filter_value);
 #endif
 
     uint32_t config_id = RTE_CONFIG_ID;                                     //lint !e9053
@@ -663,8 +663,8 @@ RTE_OPTIM_SIZE void __rte_string(const uint32_t fmt_id, const char * const addre
  *        If the length of the string (excluding the trailing zero byte) is divisible
  *        by 4, the zero value at the end of the string is not saved to the buffer.
  *
- * @param fmt_id   Format ID number - see the description of __rte_msg0().
- * @param address  String start address
+ * @param fmt_id      Format ID number - see the description of __rte_msg0().
+ * @param address     String start address
  * @param max_length  Maximum message length to be stored in the circular buffer
  ********************************************************************************/
 

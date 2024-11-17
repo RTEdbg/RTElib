@@ -8,11 +8,14 @@
  * @file    rtedbg_timer_stm32L4_tim2.h
  * @author  Branko Premzel
  * @brief   Time measurement for the data logging functions.
- *          TIM2 32-bit timer driver for the STM32L4 family.
+ *          TIM2 32-bit timer driver for the STM32L4 family (see note below).
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  *
- * @note This file has to be adapted to the particular embedded application hardware.
- *       The current driver version assumes a fixed CPU clock frequency.
+ * @note The driver is applicable to most devices of the STM32xx family (G0, G4, C0,
+ *       L0, L4, ...) with ARM Cortex M0, M0+ and M4 cores that have a 32-bit TIM2
+ *       timer. It has been tested for STM32G4 and L4 only.
+ *       This file has to be adapted to the particular embedded application hardware
+ *       if necessary.
  *       This is a minimalist version of the driver made without using the STM32 HAL
  *       or low level HAL functions.
  **********************************************************************************/
@@ -27,9 +30,6 @@ extern "C" {
 #include "rtedbg.h"
 
 #define RTE_TIMESTAMP_COUNTER_BITS  32U  // Number of timer counter bits available for the timestamp
-#define RTE_TIMESTAMP_PRESCALER     8U
-    // Divide 16 MHz clock by (8 * 2) to get a 1 us timestamp resolution.
-    // Additional division by 2 is due to implementation of data logging functions
 
 
 #if RTE_USE_LONG_TIMESTAMP != 0
@@ -56,8 +56,11 @@ __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
     CLEAR_BIT(RCC->APB1RSTR1, RCC_APB1RSTR1_TIM2RST);
 
     // Set only the registers which must have values different from reset.
-    TIM2->PSC = RTE_TIMESTAMP_PRESCALER - 1;
+    TIM2->PSC = (RTE_TIMESTAMP_PRESCALER) - 1;
     TIM2->CR1 = TIM_CR1_CEN;        // Enable the timer counter
+#if (RTE_TIMESTAMP_PRESCALER) != 1U
+    TIM2->EGR = TIM_EGR_UG;         // Reload the PSC with new value
+#endif
 
 #if RTE_USE_LONG_TIMESTAMP != 0
     t_stamp.l = t_stamp.h = 0;      // Reset the long timestamp

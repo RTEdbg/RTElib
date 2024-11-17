@@ -146,15 +146,6 @@ extern "C" {
    * 0 - Shorten messages that are too long to the maximum size.
    */
 
-//#define RTE_DATA_MEMORY_BARRIER() __DMB()
-   /* Enable the memory barrier if you want to enable data logging on more than one core of a
-    * multi-core device based on the Cortex-M architecture. The memory barrier instruction is
-    * generally not required for data logging on a single-core Cortex-M-based device. Refer to
-    * the device documentation if you are using a different type of CPU core. See the description
-    * in the RTEdbg manual section:
-    *        "Using the RTEdbg library on multi-core processors"
-    */
-
 
 /*********************************************************************************
  *              COMPILER-SPECIFIC DEFINITIONS
