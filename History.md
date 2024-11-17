@@ -8,3 +8,8 @@
 * Shorter rte_init() function under certain compile time options.
 * Fixed some compile warnings.
 * Improved comments and fixed typos.
+### 1.00.02 - 2024-11-17
+* Added the `rtedbg_generic_atomic_smp.h` buffer space reservation driver
+* Fixed a bug in the STM32 TIM2 timestamp drivers.
+* Added issue and pull request templates.
+* Updated Readme.md files.
