@@ -9,19 +9,19 @@
  * @author  Branko Premzel
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  *
- * @brief  ARM Cortex core specific functions for the buffer space reservation.
- *         This version is for ARM Cortex M cores that support mutex instructions
- *         (e.g. M3/M4/M7/M55/M85/M33). Use 'rtedbg_generic_irq_disable.h' for
- *         all ARM Cortex M cores that do not support mutex instructions.
+ * @brief  ARM Cortex core-specific functions for buffer space reservation.
+ *         This version is for ARM Cortex-M cores that support exclusive access
+ *         instructions (e.g., M3/M4/M7/M55/M85/M33). Use 'rtedbg_generic_irq_disable.h'
+ *         for ARM Cortex-M cores that do not support these instructions.
  *
  * @note   This driver version is suitable for single-core devices or multi-core
  *         devices where data logging is performed for only one core or separately
- *         for each of the cores.
+ *         for each core.
  *         Use the generic symmetric multi-core device driver with support for 
  *         the atomic operations library in "rtedbg_generic_atomic_smp.h" and follow
  *         the instructions in the readme and RTEdbg manual if you plan to use a
- *         common g_rtedbg data logging structure for all of the CPU cores. Also
- *         follow processor family memory sharing instructions.
+ *         common g_rtedbg data logging structure for all CPU cores. Also, follow
+ *         processor family memory sharing instructions.
  *
  * @note   RTE_RESERVE_SPACE is defined as a macro instead of an inline function
  *         because the compiler typically generates smaller code when single-shot
@@ -29,8 +29,8 @@
  ******************************************************************************/
 
 /********************************************************************************
- * @brief  Reserve space in the circular buffer with the use of mutex instructions.
- *         Interrupts are therefore not disabled at all during data logging.
+ * @brief  Reserve space in the circular buffer using exclusive access instructions.
+ *         Interrupts are not disabled during data logging.
  ********************************************************************************/
 
 #ifndef RTEDBG_CORTEX_M_MUTEX_H
@@ -38,7 +38,7 @@
 
 #if RTE_SINGLE_SHOT_ENABLED == 0
 
-/* The post-mortem and streaming mode debugging are possible. The code is
+/* Post-mortem and streaming mode debugging are possible. The code is
  * faster and smaller compared to the single-shot enabled version.
  */
 #define RTE_RESERVE_SPACE(ptr, buf_idx, size)                               \
@@ -55,9 +55,9 @@ do {                                                                        \
 
 #else   /* RTE_SINGLE_SHOT_ENABLED == 1 */
 
-/* Single shot and post mortem / streaming data logging are possible.
- * Post mortem logging is the default mode. Single shot logging must be
- * enabled by calling function rte_init() with the appropriate parameter.
+/* Single-shot and post-mortem/streaming data logging are possible.
+ * Post-mortem logging is the default mode. Single-shot logging must be
+ * enabled by calling the function rte_init() with the appropriate parameter.
  */
 #define RTE_RESERVE_SPACE(ptr, buf_idx, size)                               \
 do {                                                                        \

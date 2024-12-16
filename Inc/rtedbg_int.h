@@ -8,7 +8,7 @@
  * @file    rtedbg_int.h
  * @author  Branko Premzel
  * @brief   Internal definitions for the real-time data logging functions.
- * @note    The file should be included in your program code only if the firmware needs
+ * @note    This file should be included in your program code only if the firmware needs
  *          access to the g_rtedbg data structure to e.g. transfer data to the host.
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  ********************************************************************************/
@@ -46,7 +46,7 @@
 /***********************************************************************************
  * The configuration word defines the embedded system RTEdbg configuration.
  * Bit    0: 0 - post-mortem logging is active
- *           1 = single shot logging is was enabled
+ *           1 = single shot logging is enabled
  *        1: 1 = RTE_MSG_FILTERING_ENABLED, 0 - disabled
  *        2: 1 = RTE_FILTER_OFF_ENABLED, 0 - filter off not possible
  *        3: 1 = RTE_SINGLE_SHOT_ENABLED, 0 - only post mortem mode possible
@@ -167,7 +167,7 @@ typedef struct
     uint32_t timestamp_frequency;       /*!< Timestamp timer frequency [Hz]. */
     uint32_t filter_copy;
         /*!< A copy of the filter variable. Contains the last non-zero value before
-         *   message logging was stopped with firmware. Host software or the firmware
+         *   message logging was stopped by the firmware. Host software or the firmware
          *   can restore the value after logging is paused, for example, to send a
          *   snapshot of the logging buffer to the host.
          * Note: The value is valid when the firmware manipulates the message filter,
@@ -199,8 +199,8 @@ typedef union
     uint64_t w64;
     struct
     {
-        uint32_t data;      // A 32-bit data that has to be saved to circular buffer.
-        uint32_t bits31;    // To shift 31 bits of each DATA word into this variable.
+        uint32_t data;      // A 32-bit data word that has to be saved to the circular buffer.
+        uint32_t bits31;    // To shift bit 31 of each DATA word into this variable.
     } w32;
 } rte_pack_data_t;
 

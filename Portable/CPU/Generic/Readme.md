@@ -6,6 +6,7 @@ The *Portable/CPU/Generic* folder contains three driver versions:
 * **rtedbg_generic_irq_disable.h** - Space reservation using interrupt disable/enable. Should be used for all devices with a CPU core that does not support mutex instructions. It can also be used for all other processors if short term interrupt disabling is not a problem.
 * **rtedbg_generic_atomic.h** - Space reservation using the Atomic operations library (mutex instructions) for single-core devices.
 * **rtedbg_generic_atomic_smp.h** - Space reservation using the Atomic operations library for multi-core devices (SMP - symetric multiprocessing).
+* **rtedbg_generic_non_reentrant.h** - Space reservation without re-entry protection. Use when the programmer can ensure that the logging functions are called only from parts of the program that can never be executed simultaneously. Data logging is faster and program memory usage is reduced.
 
 See also the following sections of the RTEdbg manual:
 * 'Data logging in RTOS-based applications' if your code runs under an RTOS.

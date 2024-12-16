@@ -10,14 +10,14 @@
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  *
  * @brief  Circular buffer space reservation using atomic operations library for
- *         single-core devices. See also description in the Readme.md file.
- *         The compiler should be C11 compatible or newer.
- *         Use the processor core specific version if available - e.g. the
- *         "rtedbg_cortex_m_mutex.h" since in general it is more optimized and
- *         faster than this generic one.
+ *         single-core devices. Refer to the Readme.md file for more details.
+ *         The compiler must be C11 compatible or newer.
+ *         Use a processor core-specific version if available, such as
+ *         "rtedbg_cortex_m_mutex.h", as it is generally more optimized and
+ *         faster than this generic version.
  *         On some architectures, using atomic_compare_exchange_strong_explicit()
- *         instead of atomic_compare_exchange_weak_explicit() may result in faster
- *         code execution.
+ *         instead of atomic_compare_exchange_weak_explicit() may result in
+ *         faster code execution.
  *
  * @note   RTE_RESERVE_SPACE is defined as a macro instead of an inline function
  *         because the compiler typically generates smaller code when single-shot
@@ -31,14 +31,14 @@
 
 #if RTE_SINGLE_SHOT_ENABLED == 0
 
-/* The post-mortem and streaming mode debugging are possible. The code is
+/* Post-mortem and streaming mode debugging are possible. The code is
  * faster and smaller compared to the single-shot enabled version.
  */
 
 #define RTE_RESERVE_SPACE(ptr, index, size)                                   \
 do                                                                            \
 {                                                                             \
-    _Atomic uint32_t* buff_idx = (_Atomic uint32_t *)&ptr->buf_index;         \
+    _Atomic uint32_t *buff_idx = (_Atomic uint32_t *)&ptr->buf_index;         \
     uint32_t temp;                                                            \
     do                                                                        \
     {                                                                         \
@@ -53,14 +53,14 @@ do                                                                            \
 
 #else   /* RTE_SINGLE_SHOT_ENABLED == 1 */
 
-/* Single shot and post mortem / streaming data logging modes are possible.
- * Post mortem logging is the default logging mode. Single shot logging must be
- * enabled by calling function rte_init() with the appropriate parameter.
+/* Single-shot and post-mortem/streaming data logging modes are possible.
+ * Post-mortem logging is the default logging mode. Single-shot logging must be
+ * enabled by calling the rte_init() function with the appropriate parameter.
  */
 
 #define RTE_RESERVE_SPACE(ptr, index, size)                                   \
 do {                                                                          \
-    _Atomic uint32_t* buff_idx = (_Atomic uint32_t *)&ptr->buf_index;         \
+    _Atomic uint32_t *buff_idx = (_Atomic uint32_t *)&ptr->buf_index;         \
     uint32_t temp;                                                            \
     do                                                                        \
     {                                                                         \

@@ -35,7 +35,7 @@ rtedbg_t g_rtedbg RTE_DBG_RAM;  //!< Data structure with circular logging buffer
  * The buffer is cleared after a power-on reset if the g_rtedbg structure has not
  * been initialized or on request with the function parameter "init_mode".
  *
- * @param inital_filter_value  Initial value for the message filter
+ * @param initial_filter_value  Initial value for the message filter
  *
  * @param init_mode
  *        The following two values enable the post-mortem data logging mode:
@@ -62,10 +62,10 @@ rtedbg_t g_rtedbg RTE_DBG_RAM;  //!< Data structure with circular logging buffer
  *          messages before calling this function.
  ********************************************************************************/
 
-RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t init_mode)
+RTE_OPTIM_SIZE void rte_init(const uint32_t initial_filter_value, const uint32_t init_mode)
 {
 #if RTE_FILTER_OFF_ENABLED == 0
-    UNUSED(inital_filter_value);
+    UNUSED(initial_filter_value);
 #endif
 
     uint32_t config_id = RTE_CONFIG_ID;                                     //lint !e9053
@@ -104,9 +104,9 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t 
 #endif // defined RTE_USE_MEMSET
 
 #if (RTE_FILTER_OFF_ENABLED != 0) && (RTE_MSG_FILTERING_ENABLED != 0)
-        g_rtedbg.filter = inital_filter_value;
+        g_rtedbg.filter = initial_filter_value;
 #if RTE_FIRMWARE_MAY_SET_FILTER == 1
-        g_rtedbg.filter_copy = inital_filter_value;
+        g_rtedbg.filter_copy = initial_filter_value;
 #endif
 #endif
         g_rtedbg.buf_index = 0U;
@@ -120,10 +120,10 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t 
     rte_init_timestamp_counter();
 
 #if RTE_FILTER_OFF_ENABLED != 0
-    rte_set_filter(inital_filter_value);
+    rte_set_filter(initial_filter_value);
 #else
 #if RTE_MSG_FILTERING_ENABLED != 0
-    g_rtedbg.filter = inital_filter_value;
+    g_rtedbg.filter = initial_filter_value;
 #endif
 #endif
 }
@@ -144,7 +144,7 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t inital_filter_value, const uint32_t 
 
 RTE_OPTIM_SPEED void __rte_msg0(const uint32_t fmt_id)
 {
-    rtedbg_t * p_rtedbg = &g_rtedbg;
+    rtedbg_t *p_rtedbg = &g_rtedbg;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
     uint32_t timestamp = (rte_get_timestamp() >> ((RTE_TIMESTAMP_SHIFT) - 1U)) & RTE_TIMESTAMP_MASK;
@@ -175,7 +175,7 @@ RTE_OPTIM_SPEED void __rte_msg0(const uint32_t fmt_id)
 
 RTE_OPTIM_SPEED void __rte_msg1(const uint32_t fmt_id, const rte_any32_t data1)
 {
-    rtedbg_t * p_rtedbg = &g_rtedbg;
+    rtedbg_t *p_rtedbg = &g_rtedbg;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
     uint32_t timestamp = (rte_get_timestamp() >> ((RTE_TIMESTAMP_SHIFT) - 1U)) & RTE_TIMESTAMP_MASK;
@@ -191,7 +191,7 @@ RTE_OPTIM_SPEED void __rte_msg1(const uint32_t fmt_id, const rte_any32_t data1)
 
     rte_pack_data_t data;                                                   //lint !e9018
     data.w32.bits31 = fmt_id;
-    uint32_t * data_packet = &g_rtedbg.buffer[buf_index];
+    uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
 
     data.w32.data = RTE_PARAM(data1);
     data.w64 <<= 1U;
@@ -214,7 +214,7 @@ RTE_OPTIM_SPEED void __rte_msg1(const uint32_t fmt_id, const rte_any32_t data1)
 
 RTE_OPTIM_SPEED void __rte_msg2(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2)
 {
-    rtedbg_t* p_rtedbg = &g_rtedbg;
+    rtedbg_t *p_rtedbg = &g_rtedbg;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
     uint32_t timestamp = (rte_get_timestamp() >> ((RTE_TIMESTAMP_SHIFT) - 1U)) & RTE_TIMESTAMP_MASK;
@@ -233,7 +233,7 @@ RTE_OPTIM_SPEED void __rte_msg2(const uint32_t fmt_id, const rte_any32_t data1, 
 
     data.w32.data = RTE_PARAM(data1);
     data.w64 <<= 1U;
-    uint32_t * data_packet = &g_rtedbg.buffer[buf_index];
+    uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
     *data_packet = data.w32.data;
     data_packet++;
 
@@ -260,7 +260,7 @@ RTE_OPTIM_SPEED void __rte_msg2(const uint32_t fmt_id, const rte_any32_t data1, 
 RTE_OPTIM_SPEED void __rte_msg3(const uint32_t fmt_id, const rte_any32_t data1,
                                 const rte_any32_t data2, const rte_any32_t data3)
 {
-    rtedbg_t * p_rtedbg = &g_rtedbg;
+    rtedbg_t *p_rtedbg = &g_rtedbg;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
     uint32_t timestamp = (rte_get_timestamp() >> ((RTE_TIMESTAMP_SHIFT) - 1U)) & RTE_TIMESTAMP_MASK;
@@ -279,7 +279,7 @@ RTE_OPTIM_SPEED void __rte_msg3(const uint32_t fmt_id, const rte_any32_t data1,
 
     data.w32.data = RTE_PARAM(data1);
     data.w64 <<= 1U;    // The top bit of all data words are packed to the FMT word
-    uint32_t * data_packet = &g_rtedbg.buffer[buf_index];
+    uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
     *data_packet = data.w32.data;
     data_packet++;
 
@@ -312,7 +312,7 @@ RTE_OPTIM_SPEED void __rte_msg3(const uint32_t fmt_id, const rte_any32_t data1,
 RTE_OPTIM_SPEED void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2,
                                 const rte_any32_t data3, const rte_any32_t data4)
 {
-    rtedbg_t * p_rtedbg = &g_rtedbg;
+    rtedbg_t *p_rtedbg = &g_rtedbg;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
     uint32_t timestamp = (rte_get_timestamp() >> ((RTE_TIMESTAMP_SHIFT) - 1U)) & RTE_TIMESTAMP_MASK;
@@ -332,7 +332,7 @@ RTE_OPTIM_SPEED void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, 
     // Save data to the buffer
     data.w32.data = RTE_PARAM(data1);
     data.w64 <<= 1U;
-    uint32_t * data_packet = &g_rtedbg.buffer[buf_index];
+    uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
     *data_packet = data.w32.data;
     data_packet++;
 
@@ -416,9 +416,9 @@ RTE_OPTIM_SIZE void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, c
 /********************************************************************************
  * @brief Log a message defined by address and size + timestamp/format ID.
  *
- * @param fmt_id   Format ID number - see the description of __rte_msg0().
- * @param address  Start address of data
- * @param length   Data length (bytes)
+ * @param fmt_id       Format ID number - see the description of __rte_msg0().
+ * @param address      Start address of data
+ * @param data_length  Data length (bytes)
  *
  * @note  The address must be aligned if unaligned access is either not enabled or the
  *        CPU core does not support unaligned addressing. The data is copied as 32b words.
@@ -429,10 +429,10 @@ RTE_OPTIM_SIZE void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, c
  ********************************************************************************/
 
 RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
-                                volatile const void * const address, const uint32_t data_length)
+                                volatile const void *const address, const uint32_t data_length)
 {
-    rtedbg_t * p_rtedbg = &g_rtedbg;
-    volatile const uint32_t * addr = (volatile const uint32_t *)address;    //lint !e925 !e9079 !e9087
+    rtedbg_t *p_rtedbg = &g_rtedbg;
+    volatile const uint32_t *addr = (volatile const uint32_t *)address;    //lint !e925 !e9079 !e9087
     uint32_t length = data_length;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
@@ -485,7 +485,7 @@ RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
 #endif
 
         // Store data in the reserved space in the circular buffer
-        uint32_t * data_packet = &g_rtedbg.buffer[buf_index];
+        uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
         switch (no_words)
         {
             default:
@@ -543,9 +543,9 @@ RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
  *        bytes (whichever is less). The upper 8 bits of the last 32-bit data word
  *        written to the circular buffer define the message length (in bytes).
  *
- * @param fmt_id   Format ID number - see the description of __rte_msg0().
- * @param address  Start address of data
- * @param length   Data length (bytes)
+ * @param fmt_id       Format ID number - see the description of __rte_msg0().
+ * @param address      Start address of data
+ * @param data_length  Data length (bytes)
  *
  * @note  This function allows you to log data whose length is not divisible by
  *        four and the length is unknown at compile time, or whose address does not
@@ -554,9 +554,9 @@ RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
  ********************************************************************************/
 
 RTE_OPTIM_LARGE void __rte_msgx(const uint32_t fmt_id,
-                                volatile const void * const address, const uint32_t data_length)
+                                volatile const void *const address, const uint32_t data_length)
 {
-    rtedbg_t * p_rtedbg = &g_rtedbg;
+    rtedbg_t *p_rtedbg = &g_rtedbg;
     uint32_t length = data_length;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
@@ -588,14 +588,14 @@ RTE_OPTIM_LARGE void __rte_msgx(const uint32_t fmt_id,
 
     timestamp |= (fmt_id << (32U - ((uint32_t)(RTE_FMT_ID_BITS) - 4U))) | 1U;
     rte_pack_data_t data;                                                   //lint !e9018
-    volatile const uint8_t * addr = (volatile const uint8_t *)address;      //lint !e925 !e9079
+    volatile const uint8_t *addr = (volatile const uint8_t *)address;      //lint !e925 !e9079
     int32_t remaining_bytes = (int32_t)length;
 
     do
     {
         data.w32.bits31 = 0U;
         no_words = 4U;
-        uint32_t * data_packet = &g_rtedbg.buffer[buf_index];
+        uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
 
         do
         {
@@ -645,7 +645,7 @@ RTE_OPTIM_LARGE void __rte_msgx(const uint32_t fmt_id,
 
 /********************************************************************************
  * @brief Write a string to the circular buffer. The maximum message length is
- *        limited by the maximum message size (RTE_MAX_MSG_SIZE).
+ *        limited by RTE_MAX_MSG_SIZE.
  *
  * @param fmt_id   Format ID number - see the description of __rte_msg0().
  * @param address  String start address
@@ -659,9 +659,9 @@ RTE_OPTIM_SIZE void __rte_string(const uint32_t fmt_id, const char * const addre
 
 /********************************************************************************
  * @brief Write a string to the circular buffer. The maximum message length is limited
- *        by the maximum message size (RTE_MAX_MSG_SIZE).
- *        If the length of the string (excluding the trailing zero byte) is divisible
- *        by 4, the zero value at the end of the string is not saved to the buffer.
+ *        by RTE_MAX_MSG_SIZE. If the length of the string (excluding the trailing
+ *        null byte) is divisible by 4, the null byte at the end of the string is not
+ *        saved to the buffer.
  *
  * @param fmt_id      Format ID number - see the description of __rte_msg0().
  * @param address     String start address
@@ -674,10 +674,10 @@ RTE_OPTIM_SPEED void __rte_stringn(const uint32_t fmt_id,
     uint32_t length = max_length;
     if (RTE_MAX_MSG_SIZE < length)
     {
-        length = RTE_MAX_MSG_SIZE;  // Limit the size to max. possible
+        length = RTE_MAX_MSG_SIZE;  // Limit the size to the maximum possible
     }
 
-    const char * s = address;
+    const char *s = address;
     uint32_t len;
     for (len = 0U; (*s != '\0') && (len < length); len++)
     {
@@ -694,10 +694,11 @@ RTE_OPTIM_SPEED void __rte_stringn(const uint32_t fmt_id,
  * @brief Set the filter mask to enable/disable up to 32 message groups simultaneously.
  *        To completely disable data logging, set the filter value to zero. If simple
  *        re-enable is disabled with RTE_FILTER_OFF_ENABLED = 1, the filter must
- *        be re-enabled with a filter value RTE_FORCE_ENABLE_ALL_FILTERS before proceeding.
+ *        be re-enabled with a filter value of RTE_FORCE_ENABLE_ALL_FILTERS before proceeding.
  *        RTE_FORCE_ENABLE_ALL_FILTERS enables the logging of all messages by setting the
- *        filter variable to 0xFFFFFFFF. Once the filter is re-enabled (i.e. is no
+ *        filter variable to 0xFFFFFFFF. Once the filter is re-enabled (i.e., is no
  *        longer zero), any filter value can be set by calling this function.
+ *        Filter number 0 (bit 31) can only be disabled by the filter parameter to 0.
  *
  * @param  filter  New message filter value
  ********************************************************************************/
@@ -744,7 +745,7 @@ RTE_OPTIM_SIZE void rte_restore_filter(void)
 /********************************************************************************
  * @brief Retrieve the current value of the message filter.
  *
- * @return Current filter value (0 = filtering is disabled completely).
+ * @return Current filter value (0 = filtering is completely disabled).
  ********************************************************************************/
 
 RTE_OPTIM_SIZE uint32_t rte_get_filter(void)
@@ -756,11 +757,11 @@ RTE_OPTIM_SIZE uint32_t rte_get_filter(void)
 
 /********************************************************************************
  * @brief Save the new timestamp frequency to the g_rtedbg structure and log
- *        the information in the circular data buffer. Call the function after
+ *        the information in the circular data buffer. Call this function after
  *        changing the frequency of the timestamp timer or after changing the
- *        frequency of the processor (if CPU clock is the timestamp timer clock).
+ *        frequency of the processor (if the CPU clock is the timestamp timer clock).
  *
- * @param  new_frequency  New time stamp counter frequency value
+ * @param  new_frequency  New timestamp counter clock frequency value
  ********************************************************************************/
 
 RTE_OPTIM_SIZE void rte_timestamp_frequency(const uint32_t new_frequency)
@@ -768,6 +769,10 @@ RTE_OPTIM_SIZE void rte_timestamp_frequency(const uint32_t new_frequency)
     g_rtedbg.timestamp_frequency = new_frequency;
     RTE_MSG1(MSG1_TSTAMP_FREQUENCY, F_SYSTEM, new_frequency)
 }
+
+#if ((RTE_TIMESTAMP_COUNTER_BITS) - (RTE_TIMESTAMP_SHIFT)) < (32U - 1U - (RTE_FMT_ID_BITS))
+#error "The maximum RTE_TIMESTAMP_SHIFT value is limited to ensure the top logged timestamp bit flips."
+#endif
 
 #endif // RTE_ENABLED != 0
                                                                             //lint -restore

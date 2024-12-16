@@ -8,7 +8,8 @@
  * @file    rtedbg_timer_systick.h
  * @author  Branko Premzel
  * @brief   Time measurement for the data logging functions using the SYSTICK timer.
- *          ARM Cortex SYSTICK is a 24-bit down counter. The driver inverts the value.
+ *          ARM Cortex SYSTICK is a 24-bit down counter. The driver inverts the value
+ *          to provide an increasing count.
  *
  * @note    If an MPU-protected version of the RTOS is used, no task (even a
  *          privileged one) has access to system peripherals such as the ARM
@@ -32,11 +33,12 @@ extern "C" {
 #define RTE_TIMESTAMP_COUNTER_BITS  24U // Number of timer counter bits available for the timestamp
 
 
+#if !defined RTE_USE_INLINE_FUNCTIONS
 #if RTE_USE_LONG_TIMESTAMP != 0
 struct _tstamp64
 {
-    uint32_t l;    // Bottom and top part of the 64-bit timestamp
-    uint32_t h;
+    uint32_t l;    // Lower 32 bits of the 64-bit timestamp
+    uint32_t h;    // Upper 32 bits of the 64-bit timestamp
 } t_stamp;
 #endif // RTE_USE_LONG_TIMESTAMP != 0
 
@@ -59,6 +61,7 @@ __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
     t_stamp.l = t_stamp.h = 0;                      // Reset the long timestamp
 #endif
 }
+#endif  // !defined RTE_USE_INLINE_FUNCTIONS
 
 
 /***
@@ -73,7 +76,7 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 }
 
 
-#if RTE_USE_LONG_TIMESTAMP != 0
+#if (RTE_USE_LONG_TIMESTAMP != 0) && (!defined RTE_USE_INLINE_FUNCTIONS)
 
 /*********************************************************************************
  * @brief  Writes a message with a long timestamp to the buffer.
@@ -82,7 +85,7 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
  *         data part.
  *
  * @note    This function is not reentrant. Typically, calls should be made from a
- *          single section of the program that is periodically executed - e.g.
+ *          single section of the program that is periodically executed - e.g.,
  *          from a timer interrupt routine.
  *********************************************************************************/
 
@@ -104,7 +107,7 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
     RTE_MSG1(MSG1_LONG_TIMESTAMP, F_SYSTEM, long_t_stamp);
 }
 
-#endif // RTE_USE_LONG_TIMESTAMP != 0
+#endif // (RTE_USE_LONG_TIMESTAMP != 0) && (!defined RTE_USE_INLINE_FUNCTIONS)
 
 #ifdef __cplusplus
 }
@@ -113,4 +116,3 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
 #endif /* RTEDBG_TIMER_SYSTICK_H */
 
 /*==== End of file ====*/
-

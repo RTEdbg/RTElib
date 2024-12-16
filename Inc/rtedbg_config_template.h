@@ -173,7 +173,7 @@ extern "C" {
  * with the compiler used for your project. The most aggressive settings will
  * not always produce the fastest and/or smallest code for all functions.
  *
- * Compilation options can be set in the IDE or Makefile for the redbg.c file.
+ * Compilation options can be set in the IDE or Makefile for the rtedbg.c file.
  * In this case, the macro definitions listed below are not required.
  * Additional macros can be used to set up the compilation of the RTEdbg library
  * separately from the rest of the project.
@@ -184,7 +184,7 @@ extern "C" {
  *   RTE_OPTIM_SPEED - Optimization of frequently used data logging functions
  *   RTE_OPTIM_LARGE - Optimization of large functions rte_msgn() and rte_msgx()
  * If an individual macro is not defined, then the RTE_OPTIMIZE_CODE macro setting
- * or the v setting of the rtedbg.c file in the project is used for the corresponding
+ * or the setting of the rtedbg.c file in the project is used for the corresponding
  * function types if RTE_OPTIMIZE_CODE is not defined either.
  *
  * The RTE_USE_ANY_TYPE_UNION macro definitions should also be defined for compilers

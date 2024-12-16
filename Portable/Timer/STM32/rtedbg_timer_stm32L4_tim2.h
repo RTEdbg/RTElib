@@ -11,12 +11,7 @@
  *          TIM2 32-bit timer driver for the STM32L4 family (see note below).
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  *
- * @note The driver is applicable to most devices of the STM32xx family (G0, G4, C0,
- *       L0, L4, ...) with ARM Cortex M0, M0+ and M4 cores that have a 32-bit TIM2
- *       timer. It has been tested for STM32G4 and L4 only.
- *       This file has to be adapted to the particular embedded application hardware
- *       if necessary.
- *       This is a minimalist version of the driver made without using the STM32 HAL
+ * @note This is a minimalist version of the driver made without using the STM32 HAL
  *       or low level HAL functions.
  **********************************************************************************/
 
@@ -31,18 +26,18 @@ extern "C" {
 
 #define RTE_TIMESTAMP_COUNTER_BITS  32U  // Number of timer counter bits available for the timestamp
 
-
+#if !defined RTE_USE_INLINE_FUNCTIONS
 #if RTE_USE_LONG_TIMESTAMP != 0
 struct _tstamp64
 {
-    uint32_t l;    // Bottom part of the 64-bit timestamp
-    uint32_t h;    // Top part of the 64-bit timestamp
+    uint32_t l;    // Lower 32 bits of the 64-bit timestamp
+    uint32_t h;    // Upper 32 bits of the 64-bit timestamp
 } t_stamp;
 #endif // RTE_USE_LONG_TIMESTAMP != 0
 
 
 /***
- * @brief Initialize peripheral for the timestamp counter.
+ * @brief Initialize the peripheral for the timestamp counter.
  */
 
 __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
@@ -51,21 +46,22 @@ __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
     SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM2EN);
     (void)RCC->APB1ENR1;    // Delay after enabling an RCC peripheral clock
 
-    // Set TIM2 registers to their reset values.
+    // Reset TIM2 registers to their default values.
     SET_BIT(RCC->APB1RSTR1, RCC_APB1RSTR1_TIM2RST);
     CLEAR_BIT(RCC->APB1RSTR1, RCC_APB1RSTR1_TIM2RST);
 
-    // Set only the registers which must have values different from reset.
+    // Configure only the registers that require non-default values.
     TIM2->PSC = (RTE_TIMESTAMP_PRESCALER) - 1;
     TIM2->CR1 = TIM_CR1_CEN;        // Enable the timer counter
 #if (RTE_TIMESTAMP_PRESCALER) != 1U
-    TIM2->EGR = TIM_EGR_UG;         // Reload the PSC with new value
+    TIM2->EGR = TIM_EGR_UG;         // Reload the prescaler with the new value
 #endif
 
 #if RTE_USE_LONG_TIMESTAMP != 0
-    t_stamp.l = t_stamp.h = 0;      // Reset the long timestamp
+    t_stamp.l = t_stamp.h = 0;      // Initialize the long timestamp to zero
 #endif
 }
+#endif  // !defined RTE_USE_INLINE_FUNCTIONS
 
 
 /***
@@ -80,11 +76,11 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 }
 
 
-#if RTE_USE_LONG_TIMESTAMP != 0
+#if (RTE_USE_LONG_TIMESTAMP != 0) && (!defined RTE_USE_INLINE_FUNCTIONS)
 
 /*********************************************************************************
- * @brief  Writes a message with long timestamp to the buffer.
- *         The low bits of the timestamp are included in the message words with the
+ * @brief  Writes a message with a long timestamp to the buffer.
+ *         The lower bits of the timestamp are included in the message words with the
  *         format ID. Only the higher 32 bits are transmitted in the message's
  *         data part.
  *
@@ -98,7 +94,7 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
     uint32_t timestamp =
         (uint32_t)(rte_get_timestamp() << (32U - (RTE_TIMESTAMP_COUNTER_BITS)));
 
-    if (t_stamp.l > timestamp)    // Counter rolled over?
+    if (t_stamp.l > timestamp)    // Has the counter rolled over?
     {
         t_stamp.h++;
     }
@@ -111,7 +107,7 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
     RTE_MSG1(MSG1_LONG_TIMESTAMP, F_SYSTEM, long_t_stamp);
 }
 
-#endif // RTE_USE_LONG_TIMESTAMP != 0
+#endif // (RTE_USE_LONG_TIMESTAMP != 0) && (!defined RTE_USE_INLINE_FUNCTIONS)
 
 #ifdef __cplusplus
 }
@@ -120,4 +116,3 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
 #endif /* RTEDBG_TIMER_STM32L4_TIM2_H */
 
 /*==== End of file ====*/
-

@@ -7,13 +7,12 @@
 /**********************************************************************************
  * @file    rtedbg_timer_test.h
  * @author  Branko Premzel
- * @brief   This file is only for testing data logging features on new processors
+ * @brief   This file is for testing data logging features on new processors
  *          or with new compilers. It counts logged messages, not time.
- *          The timestamp value included in the messages is therefore reproducible.
- *          It does not depend on the specific hardware used to test the data logging
- *          functions (and also the compiler version/settings).
+ *          The timestamp value included in the messages is reproducible and
+ *          does not depend on the specific hardware or compiler version/settings.
  *
- * @version RTEdbg library <DEVELOPMENT BRANCH>
+ * @version RTEdbg library v1.00.03
  **********************************************************************************/
 
 #ifndef RTEDBG_TEST_TIMER_H
@@ -28,7 +27,7 @@ extern "C" {
 
 #define RTE_TIMESTAMP_COUNTER_BITS  32U  // Number of timer counter bits available for the timestamp
 
-
+#if !defined RTE_USE_INLINE_FUNCTIONS
 #if RTE_USE_LONG_TIMESTAMP != 0
 struct _tstamp64
 {
@@ -41,7 +40,8 @@ static uint32_t g_message_counter;
 
 
 /***
- * @brief Initialize the emulated peripheral for the timestamp and reset it.
+ * @brief Initialize the emulated timestamp counter and reset it.
+ *        It increases by 1 for each message recorded.
  */
 
 __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
@@ -52,6 +52,7 @@ __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
     t_stamp.l = t_stamp.h = 0;
 #endif
 }
+#endif  // !defined RTE_USE_INLINE_FUNCTIONS
 
 
 /***
@@ -72,12 +73,12 @@ __STATIC_FORCEINLINE uint32_t rte_get_timestamp(void)
 #endif
 
 
-#if RTE_USE_LONG_TIMESTAMP != 0
+#if (RTE_USE_LONG_TIMESTAMP != 0) && (!defined RTE_USE_INLINE_FUNCTIONS)
 
 /*********************************************************************************
- * @brief  Writes a message with long timestamp to the buffer.
- *         The low bits of the timestamp are included in the message words with the
- *         format ID. Only the higher 32 bits are transmitted in the message's
+ * @brief  Writes a message with a long timestamp to the buffer.
+ *         The lower bits of the timestamp are included in the message words with the
+ *         format ID. Only the upper 32 bits are transmitted in the message's
  *         data part.
  *********************************************************************************/
 
@@ -86,7 +87,7 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
     uint32_t timestamp =
         (uint32_t)(rte_get_timestamp() << (32U - (RTE_TIMESTAMP_COUNTER_BITS)));
 
-    if (t_stamp.l > timestamp)    // Counter rolled over?
+    if (t_stamp.l > timestamp)    // Has the counter rolled over?
     {
         t_stamp.h++;
     }
@@ -99,7 +100,7 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
     RTE_MSG1(MSG1_LONG_TIMESTAMP, F_SYSTEM, long_t_stamp);
 }
 
-#endif // RTE_USE_LONG_TIMESTAMP != 0
+#endif // (RTE_USE_LONG_TIMESTAMP != 0) && (!defined RTE_USE_INLINE_FUNCTIONS)
 
 #ifdef __cplusplus
 }
@@ -108,4 +109,3 @@ RTE_OPTIM_SIZE void rte_long_timestamp(void)
 #endif /* RTEDBG_TEST_TIMER_H */
 
 /*==== End of file ====*/
-

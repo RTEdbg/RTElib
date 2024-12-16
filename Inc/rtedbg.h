@@ -8,7 +8,7 @@
  * @file    rtedbg.h
  * @author  Branko Premzel
  * @brief   RTEdbg library function declarations and macro definitions.
- * @Note:   This file must be included in all source files that use data logging.
+ * @note    This file must be included in all source files that use data logging.
  * @version RTEdbg library <DEVELOPMENT BRANCH>
  *******************************************************************************/
 
@@ -256,10 +256,10 @@ __STATIC_FORCEINLINE uint32_t double_par(const double number)
 
 #define RTE_MSG4(fmt, filter_no, data1, data2, data3, data4)                        \
 {                                                                                   \
-      RTE_CHECK_PARAMETERS(filter_no, fmt, 15U);                                    \
-      __rte_msg4(RTE_PACK(filter_no, fmt, 4U), (rte_any32_t)(data1),                \
-                          (rte_any32_t)(data2), (rte_any32_t)(data3),               \
-                          (rte_any32_t)(data4));                                    \
+    RTE_CHECK_PARAMETERS(filter_no, fmt, 15U);                                      \
+    __rte_msg4(RTE_PACK(filter_no, fmt, 4U), (rte_any32_t)(data1),                  \
+               (rte_any32_t)(data2), (rte_any32_t)(data3),                          \
+               (rte_any32_t)(data4));                                               \
 }
 
 #define INTRTE_EXT_MSG0(fmt, filter_no, ext_data, mask)                             \
@@ -317,8 +317,8 @@ __STATIC_FORCEINLINE uint32_t double_par(const double number)
 
 #define RTE_STRING(fmt, filter_no, address)                                         \
 {                                                                                   \
-       RTE_CHECK_PARAMETERS(filter_no, fmt, 15U);                                   \
-      __rte_string(RTE_PACK(filter_no, fmt, 4U), address);                          \
+    RTE_CHECK_PARAMETERS(filter_no, fmt, 15U);                                      \
+    __rte_string(RTE_PACK(filter_no, fmt, 4U), address);                            \
 }
 
 #if defined(_lint) && defined(RTE_USE_ANY_TYPE_UNION)
@@ -368,6 +368,7 @@ typedef union {
  **************************/
 
 // The fmt_id parameter contains format ID, extended data, and filter number information.
+#ifndef RTE_USE_INLINE_FUNCTIONS
 void __rte_msg0(const uint32_t fmt_id);
 void __rte_msg1(const uint32_t fmt_id, const rte_any32_t data1);
 void __rte_msg2(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2);
@@ -375,6 +376,7 @@ void __rte_msg3(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_
                 const rte_any32_t data3);
 void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2,
                 const rte_any32_t data3, const rte_any32_t data4);
+#endif // RTE_USE_INLINE_FUNCTIONS
 void __rte_msgn(const uint32_t fmt_id, volatile const void * const address, const uint32_t data_length);
 void __rte_msgx(const uint32_t fmt_id, volatile const void * const address, const uint32_t data_length);
 void __rte_string(const uint32_t fmt_id, const char * const address);
