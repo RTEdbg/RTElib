@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Branko Premzel.
+ * Copyright (c) Branko Premzel.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -105,10 +105,12 @@ extern "C" {
    */
 
 #define RTE_MINIMIZED_CODE_SIZE           0
-  /* 1 - Enables reduced code size but slower execution and higher stack usage for the
-   *     following functions: __rte_msg0() ... __rte_msg4().
-   * 0 - Faster code execution, reduced stack requirement and larger code size if most
+  /* 0 - Fastest code execution, reduced stack requirement and larger code size if most
    *     of the data logging functions are used.
+   * 1 - Reduced code size but slower execution and higher stack usage for the
+   *     functions: __rte_msg0() ... __rte_msg4().
+   * 2 - Typically, an even smaller code size than with RTE_MINIMIZED_CODE_SIZE = 1 at
+   *     the cost of slower execution.
    */
 
 #define RTE_DELAYED_TSTAMP_READ           1
@@ -145,6 +147,29 @@ extern "C" {
   /* 1 - Discard messages that are longer than the maximum allowed.
    * 0 - Shorten messages that are too long to the maximum size.
    */
+
+/**
+ * Some CPU cores do not support unaligned memory access, or it may be possible to disable
+ * unaligned memory access via firmware. For such cases, the function __rte_msgn()/RTE_MSGN()
+ * can enable special handling of messages with an unaligned address by setting
+ * RTE_HANDLE_UNALIGNED_MEMORY_ACCESS to 1. Alternatively, logging of such messages can be
+ * disabled by setting RTE_DISCARD_MSGS_WITH_UNALIGNED_ADDRESS to 1. This prevents triggering
+ * a system error when accessing an unaligned memory address.
+ *
+ * If logging a message at an unaligned address occurs while RTE_HANDLE_UNALIGNED_MEMORY_ACCESS
+ * is enabled, logging will be slower compared to cases where the memory address is aligned.
+ */
+
+#define RTE_HANDLE_UNALIGNED_MEMORY_ACCESS     0
+  /* 1 - CPU core does not allow unaligned memory access or unaligned access is disabled.
+   * 0 - CPU core supports unaligned memory access, and special handling of this is not necessary.
+   */
+
+#define RTE_DISCARD_MSGS_WITH_UNALIGNED_ADDRESS     0
+  /* 1 - Discard message if the address parameter provided to the RTE_MSGN macro is not aligned.
+   * 0 - Do not discard a message if the address parameter is not aligned.
+   */
+
 
 
 /*********************************************************************************

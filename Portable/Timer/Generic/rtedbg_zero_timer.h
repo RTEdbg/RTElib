@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Branko Premzel.
+ * Copyright (c) Branko Premzel.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -11,7 +11,7 @@
  *          Logging functions are faster and shorter, but when testing, we only have
  *          data in the order it was logged, without time information.
  *
- * @version RTEdbg library v1.00.03
+ * @version RTEdbg library <DEVELOPMENT BRANCH>
  **********************************************************************************/
 
 #ifndef RTEDBG_ZERO_TIMER_H

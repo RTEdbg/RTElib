@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Branko Premzel.
+ * Copyright (c) Branko Premzel.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -12,7 +12,7 @@
  *          The timestamp value included in the messages is reproducible and
  *          does not depend on the specific hardware or compiler version/settings.
  *
- * @version RTEdbg library v1.00.03
+ * @version RTEdbg library <DEVELOPMENT BRANCH>
  **********************************************************************************/
 
 #ifndef RTEDBG_TEST_TIMER_H
@@ -52,6 +52,8 @@ __STATIC_FORCEINLINE void rte_init_timestamp_counter(void)
     t_stamp.l = t_stamp.h = 0;
 #endif
 }
+#else
+extern uint32_t g_message_counter;
 #endif  // !defined RTE_USE_INLINE_FUNCTIONS
 
 

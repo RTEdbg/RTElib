@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Branko Premzel.
+ * Copyright (c) Branko Premzel.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -249,6 +249,10 @@ typedef union
 #else
 #define RTE_FALLTHROUGH  // Compiler might not support preprocessor checks for attributes
 #endif  // defined __has_attribute
+
+#if (RTE_HANDLE_UNALIGNED_MEMORY_ACCESS == 1) && (RTE_DISCARD_MSGS_WITH_UNALIGNED_ADDRESS == 1)
+#error "RTE_HANDLE_UNALIGNED_MEMORY_ACCESS enables special handling of unaligned accesses and prevents them from being discarded."
+#endif
 
 #endif /* RTEDBG_INT_H */
 

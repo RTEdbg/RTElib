@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Branko Premzel.
+ * Copyright (c) Branko Premzel.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -17,6 +17,17 @@
  * All subpackets belonging to the same recorded message have the same timestamp 
  * value. This allows the rtemsg decoding utility to determine which subpackets
  * belong to the same message and assemble/decode them correctly.
+ *
+ * @note  Add `#define RTE_USE_INLINE_FUNCTIONS` before include `rtedbg.c` if you
+ *        want to use faster inline versions of the logging functions `__rte_msg0()`
+ *        to `__rte_msg4()` in that file.
+ *        If the source file that includes this header file contains interrupt
+ *        programs that have such a high priority that no other interrupt program
+ *        can interrupt them, a faster non-reentrant version of circular buffer
+ *        reservation can be used for logging, allowing even faster (less intrusive)
+ *        logging. This is done by adding the macro
+ *            #define RTE_USE_LOCAL_CPU_DRIVER "rtedbg_generic_non_reentrant.h"
+ *        before #include `rtedbg.c`.
  ********************************************************************************/
                                                                             //lint -save -e970 -e506 -e778 -e831 -e835 -e845 -e904 -e9036 -e9125 -e9126 -e9139 -e9090 -e9141
 
@@ -26,9 +37,21 @@
 #if RTE_ENABLED != 0
 // Project-specific includes - define them in the rtedbg_config.h
 #include RTE_TIMER_DRIVER   // Timestamp timer driver
-#include RTE_CPU_DRIVER     // Buffer space reservation macro specific to the CPU
 
-rtedbg_t g_rtedbg RTE_DBG_RAM;  //!< Data structure with circular logging buffer
+#if defined RTE_USE_LOCAL_CPU_DRIVER
+/* The option to enable a simpler and faster driver for a section of code with a priority
+ * level high enough to prevent interruptions during execution. This applies only to
+ * interrupts that involve data logging. */
+#include RTE_USE_LOCAL_CPU_DRIVER
+#else
+#include RTE_CPU_DRIVER     // Buffer space reservation macro specific to the CPU
+#endif
+
+#if !defined RTE_USE_INLINE_FUNCTIONS
+#define RTE_CFG_MSG0_4 RTE_OPTIM_SPEED  /* Local configuration for __rte_msg0 to __rte_msg4 */
+
+rtedbg_t g_rtedbg RTE_DBG_RAM;      //!< Data structure with circular logging buffer
+
 
 /********************************************************************************
  * @brief Initialize the data structures and clear the circular buffer if necessary.
@@ -127,6 +150,9 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t initial_filter_value, const uint32_t
 #endif
 #endif
 }
+#else
+#define RTE_CFG_MSG0_4 __STATIC_FORCEINLINE
+#endif  // !defined RTE_USE_INLINE_FUNCTIONS
 
 
 /********************************************************************************
@@ -142,7 +168,7 @@ RTE_OPTIM_SIZE void rte_init(const uint32_t initial_filter_value, const uint32_t
 
 #if RTE_MINIMIZED_CODE_SIZE == 0
 
-RTE_OPTIM_SPEED void __rte_msg0(const uint32_t fmt_id)
+RTE_CFG_MSG0_4 void __rte_msg0(const uint32_t fmt_id)
 {
     rtedbg_t *p_rtedbg = &g_rtedbg;
 
@@ -173,7 +199,7 @@ RTE_OPTIM_SPEED void __rte_msg0(const uint32_t fmt_id)
  * @param  data1   Any 32-bit data
  ********************************************************************************/
 
-RTE_OPTIM_SPEED void __rte_msg1(const uint32_t fmt_id, const rte_any32_t data1)
+RTE_CFG_MSG0_4 void __rte_msg1(const uint32_t fmt_id, const rte_any32_t data1)
 {
     rtedbg_t *p_rtedbg = &g_rtedbg;
 
@@ -212,7 +238,7 @@ RTE_OPTIM_SPEED void __rte_msg1(const uint32_t fmt_id, const rte_any32_t data1)
  * @param  data1, data2  Any 32-bit data
  ********************************************************************************/
 
-RTE_OPTIM_SPEED void __rte_msg2(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2)
+RTE_CFG_MSG0_4 void __rte_msg2(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2)
 {
     rtedbg_t *p_rtedbg = &g_rtedbg;
 
@@ -257,7 +283,7 @@ RTE_OPTIM_SPEED void __rte_msg2(const uint32_t fmt_id, const rte_any32_t data1, 
  * @param  data1 ... data3  Any 32-bit data
  ********************************************************************************/
 
-RTE_OPTIM_SPEED void __rte_msg3(const uint32_t fmt_id, const rte_any32_t data1,
+RTE_CFG_MSG0_4 void __rte_msg3(const uint32_t fmt_id, const rte_any32_t data1,
                                 const rte_any32_t data2, const rte_any32_t data3)
 {
     rtedbg_t *p_rtedbg = &g_rtedbg;
@@ -309,7 +335,7 @@ RTE_OPTIM_SPEED void __rte_msg3(const uint32_t fmt_id, const rte_any32_t data1,
  * @param  data1 ... data4  Any 32-bit data
  ********************************************************************************/
 
-RTE_OPTIM_SPEED void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2,
+RTE_CFG_MSG0_4 void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, const rte_any32_t data2,
                                 const rte_any32_t data3, const rte_any32_t data4)
 {
     rtedbg_t *p_rtedbg = &g_rtedbg;
@@ -359,8 +385,8 @@ RTE_OPTIM_SPEED void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, 
     *data_packet = timestamp | 1U | (data.w32.bits31 << (32U - (uint32_t)(RTE_FMT_ID_BITS)));
 }
 
-#else // RTE_MINIMIZED_CODE_SIZE == 0
-                                                                            //lint -e613
+#else // RTE_MINIMIZED_CODE_SIZE == 1
+
 /***
  * @brief Minimized versions of the __rte_msg0() ... __rte_msg4() functions.
  *        See the __rte_msg0() ... __rte_msg4() function descriptions above.
@@ -413,6 +439,7 @@ RTE_OPTIM_SIZE void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, c
 #endif // RTE_MINIMIZED_CODE_SIZE == 0
 
 
+#if !defined RTE_USE_INLINE_FUNCTIONS
 /********************************************************************************
  * @brief Log a message defined by address and size + timestamp/format ID.
  *
@@ -420,19 +447,47 @@ RTE_OPTIM_SIZE void __rte_msg4(const uint32_t fmt_id, const rte_any32_t data1, c
  * @param address      Start address of data
  * @param data_length  Data length (bytes)
  *
- * @note  The address must be aligned if unaligned access is either not enabled or the
- *        CPU core does not support unaligned addressing. The data is copied as 32b words.
- *        If the message length is not divisible by 4 and the memory protection unit (MPU)
- *        is enabled, the additional bytes copied in the last word must not be outside the
- *        region accessible by the task calling this function. Use the __rte_msgx()
- *        function if such behaviour is a problem.
+ * The function can be customized using conditional compilation to either maximize execution
+ * speed (while minimizing stack usage) or minimize the size of the function. In addition,
+ * support for unaligned addresses can be turned on or off, depending on whether the processor
+ * core supports accessing data at unaligned addresses. When coding, the focus was on achieving
+ * the highest possible code optimization, which makes the code less readable.
+ *
+ * If the data length is equal to 0, only the FMT word with the format index and timestamp
+ * is saved to the circular buffer.
+ *
+ * The zero address value (NULL pointer) is valid because some microcontrollers have RAM
+ * at address 0. The address may be zero if no data needs to be logged (data length is zero).
+ *
+ * Some CPU cores do not support unaligned memory access, or it may be possible to disable
+ * unaligned memory access via firmware. For such cases, the function __rte_msgn()/RTE_MSGN()
+ * can enable special handling of messages with an unaligned address by setting
+ * RTE_HANDLE_UNALIGNED_MEMORY_ACCESS to 1. Alternatively, logging of such messages can be
+ * disabled by setting RTE_DISCARD_MSGS_WITH_UNALIGNED_ADDRESS to 1. This prevents triggering
+ * a system error when accessing an unaligned memory address.
+ * If logging a message at an unaligned address occurs while RTE_HANDLE_UNALIGNED_MEMORY_ACCESS
+ * is enabled, logging will be slower compared to cases where the memory address is aligned.
+ *
+ * If the message length is not divisible by 4 and the memory protection unit (MPU)
+ * is enabled, the additional bytes copied in the last word must not be outside the
+ * region accessible by the task calling this function.
  ********************************************************************************/
 
 RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
                                 volatile const void *const address, const uint32_t data_length)
 {
+#if RTE_DISCARD_MSGS_WITH_UNALIGNED_ADDRESS == 1
+    if ((uint32_t)address & 3U)
+    {
+        return;
+    }
+#endif
+
     rtedbg_t *p_rtedbg = &g_rtedbg;
-    volatile const uint32_t *addr = (volatile const uint32_t *)address;    //lint !e925 !e9079 !e9087
+    volatile const uint32_t *addr_w = (volatile const uint32_t *)address;    //lint !e925 !e9079 !e9087
+#if RTE_HANDLE_UNALIGNED_MEMORY_ACCESS == 1
+    volatile const uint8_t *addr_b = (volatile const uint8_t *)address;       //lint !e925 !e9079 !e9087
+#endif
     uint32_t length = data_length;
 
 #if RTE_DELAYED_TSTAMP_READ != 1
@@ -475,65 +530,161 @@ RTE_OPTIM_LARGE void __rte_msgn(const uint32_t fmt_id,
     timestamp |= ((fmt_id << (32U - ((uint32_t)(RTE_FMT_ID_BITS) - 4U))) & fmt_mask) | 1U;
 #endif
 
+#if (RTE_MINIMIZED_CODE_SIZE == 0) || (RTE_MINIMIZED_CODE_SIZE == 1)
+    //********* Version optimized for speed *********
+#if RTE_HANDLE_UNALIGNED_MEMORY_ACCESS == 1
+    if ((uint32_t)address & 3U)
+    {
+        do
+        {
+            rte_pack_data_t data;                                               //lint !e9018
+#if RTE_MINIMIZED_CODE_SIZE != 0
+            data.w32.bits31 = 0xF0U;    // Extended data mask
+#else
+            data.w32.bits31 = 0U;
+#endif
+
+            // Store data in the reserved space in the circular buffer
+            uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
+            uint32_t words_this_packet = (no_words > 5U) ? 5U : no_words;
+
+            // Process full words in this packet
+            for (uint32_t i = 1U; i < words_this_packet; i++)
+            {
+                data.w32.data = (uint32_t)addr_b[3];
+                data.w32.data = (data.w32.data << 8U) | (uint32_t)addr_b[2];
+                data.w32.data = (data.w32.data << 8U) | (uint32_t)addr_b[1];
+                data.w32.data = (data.w32.data << 8U) | (uint32_t)addr_b[0];
+                addr_b += 4U;
+                data.w64 <<= 1U;
+                *data_packet = data.w32.data;
+                data_packet++;
+            }
+
+            // Add the word with format ID and timestamp
+#if RTE_MINIMIZED_CODE_SIZE != 0
+            *data_packet = timestamp |
+                    (((data.w32.bits31 & 0x0FU) | (fmt_id & (data.w32.bits31 >> 4U)))
+                            << (32U - (uint32_t)(RTE_FMT_ID_BITS)));
+#else
+            *data_packet = timestamp | (data.w32.bits31 << (32U - (uint32_t)(RTE_FMT_ID_BITS)));
+#endif
+
+            buf_index += 5U;
+            RTE_LIMIT_INDEX(buf_index)
+            no_words -= words_this_packet;
+        }
+        while ((int32_t)no_words > 0);
+    }
+    else
+#endif  // RTE_HANDLE_UNALIGNED_MEMORY_ACCESS == 1
+    {
+        do
+        {
+            rte_pack_data_t data;                                               //lint !e9018
+#if RTE_MINIMIZED_CODE_SIZE != 0
+            data.w32.bits31 = 0xF0U;    // Extended data mask
+#else
+            data.w32.bits31 = 0U;
+#endif
+
+            // Store data in the reserved space in the circular buffer
+            uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
+            switch (no_words)
+            {
+                default:
+                    data.w32.data = *addr_w;
+                    addr_w++;
+                    data.w64 <<= 1U;
+                    *data_packet = data.w32.data;
+                    data_packet++;
+                    RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
+                case 4U:
+                    data.w32.data = *addr_w;
+                    addr_w++;
+                    data.w64 <<= 1U;
+                    *data_packet = data.w32.data;
+                    data_packet++;
+                    RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
+                case 3U:
+                    data.w32.data = *addr_w;
+                    addr_w++;
+                    data.w64 <<= 1U;
+                    *data_packet = data.w32.data;
+                    data_packet++;
+                    RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
+                case 2U:
+                    data.w32.data = *addr_w;
+                    addr_w++;
+                    data.w64 <<= 1U;
+                    *data_packet = data.w32.data;
+                    data_packet++;
+                    RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
+                case 1U:
+                    // Add the word with format ID and timestamp (and extended data bits in minimized mode)
+#if RTE_MINIMIZED_CODE_SIZE != 0
+                    *data_packet = timestamp |
+                              (((data.w32.bits31 & 0x0FU) | (fmt_id & (data.w32.bits31 >> 4U)))
+                               << (32U - (uint32_t)(RTE_FMT_ID_BITS)));
+#else
+                    *data_packet = timestamp | (data.w32.bits31 << (32U - (uint32_t)(RTE_FMT_ID_BITS)));
+#endif
+                    break;
+            }
+
+            buf_index += 5U;
+            RTE_LIMIT_INDEX(buf_index)
+            no_words -= 5U;
+        }
+        while ((int32_t)no_words > 0);
+    }
+
+#elif RTE_MINIMIZED_CODE_SIZE == 2
+    //********* Version optimized for code size *********
     do
     {
         rte_pack_data_t data;                                               //lint !e9018
-#if RTE_MINIMIZED_CODE_SIZE != 0
-        data.w32.bits31 = 0xF0U;    // Add extended data
-#else
-        data.w32.bits31 = 0U;
-#endif
+        data.w32.bits31 = 0xF0U;    // Extended data mask
 
         // Store data in the reserved space in the circular buffer
         uint32_t *data_packet = &g_rtedbg.buffer[buf_index];
-        switch (no_words)
+        uint32_t words_this_packet = (no_words > 5U) ? 5U : no_words;
+
+        // Process full words in this packet
+        for (uint32_t i = 1U; i < words_this_packet; i++)
         {
-            default:
-                data.w32.data = *addr;
-                addr++;
-                data.w64 <<= 1U;
-                *data_packet = data.w32.data;
-                data_packet++;
-                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
-            case 4U:
-                data.w32.data = *addr;
-                addr++;
-                data.w64 <<= 1U;
-                *data_packet = data.w32.data;
-                data_packet++;
-                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
-            case 3U:
-                data.w32.data = *addr;
-                addr++;
-                data.w64 <<= 1U;
-                *data_packet = data.w32.data;
-                data_packet++;
-                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
-            case 2U:
-                data.w32.data = *addr;
-                addr++;
-                data.w64 <<= 1U;
-                *data_packet = data.w32.data;
-                data_packet++;
-                RTE_FALLTHROUGH; /* fallthrough */ //lint -fallthrough
-            case 1U:
-                // Add the word with format ID and timestamp (and extended data bits in minimized mode)
-#if RTE_MINIMIZED_CODE_SIZE != 0
-                *data_packet = timestamp |
-                              (((data.w32.bits31 & 0x0FU) | (fmt_id & (data.w32.bits31 >> 4U)))
-                               << (32U - (uint32_t)(RTE_FMT_ID_BITS))
-                              );
-#else
-                *data_packet = timestamp | (data.w32.bits31 << (32U - (uint32_t)(RTE_FMT_ID_BITS)));
+#if RTE_HANDLE_UNALIGNED_MEMORY_ACCESS == 1
+            if ((uint32_t)address & 3U)
+            {
+                data.w32.data = (uint32_t)addr_b[3];
+                data.w32.data = (data.w32.data << 8U) | (uint32_t)addr_b[2];
+                data.w32.data = (data.w32.data << 8U) | (uint32_t)addr_b[1];
+                data.w32.data = (data.w32.data << 8U) | (uint32_t)addr_b[0];
+                addr_b += 4U;
+            }
+            else
 #endif
-                break;
+            {
+                data.w32.data = *addr_w;
+                addr_w++;
+            }
+            data.w64 <<= 1U;
+            *data_packet = data.w32.data;
+            data_packet++;
         }
 
+        // Add the word with format ID and timestamp
+        *data_packet = timestamp |
+                      (((data.w32.bits31 & 0x0FU) | (fmt_id & (data.w32.bits31 >> 4U)))
+                       << (32U - (uint32_t)(RTE_FMT_ID_BITS)));
         buf_index += 5U;
         RTE_LIMIT_INDEX(buf_index)
         no_words -= 5U;
     }
     while ((int32_t)no_words > 0);
+#else
+#error "RTE_MINIMIZED_CODE_SIZE value out of range"
+#endif
 }
 
 
@@ -689,7 +840,6 @@ RTE_OPTIM_SPEED void __rte_stringn(const uint32_t fmt_id,
 
 
 #if RTE_FIRMWARE_MAY_SET_FILTER != 0
-
 /********************************************************************************
  * @brief Set the filter mask to enable/disable up to 32 message groups simultaneously.
  *        To completely disable data logging, set the filter value to zero. If simple
@@ -769,11 +919,16 @@ RTE_OPTIM_SIZE void rte_timestamp_frequency(const uint32_t new_frequency)
     g_rtedbg.timestamp_frequency = new_frequency;
     RTE_MSG1(MSG1_TSTAMP_FREQUENCY, F_SYSTEM, new_frequency)
 }
+#endif  // !defined RTE_USE_INLINE_FUNCTIONS
 
-#if ((RTE_TIMESTAMP_COUNTER_BITS) - (RTE_TIMESTAMP_SHIFT)) < (32U - 1U - (RTE_FMT_ID_BITS))
+#if ((RTE_TIMESTAMP_COUNTER_BITS) - (RTE_TIMESTAMP_SHIFT)) < ((32U - 1U) - (RTE_FMT_ID_BITS))
 #error "The maximum RTE_TIMESTAMP_SHIFT value is limited to ensure the top logged timestamp bit flips."
 #endif
 
+#if (RTE_MINIMIZED_CODE_SIZE > 0) && defined RTE_USE_INLINE_FUNCTIONS
+#error "RTE_MINIMIZED_CODE_SIZE must be 0 if inline RTEdbg functions are used."
+#endif
+                                                                            //lint -e613
 #endif // RTE_ENABLED != 0
                                                                             //lint -restore
 /*==== End of file ====*/

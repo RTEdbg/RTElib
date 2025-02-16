@@ -23,3 +23,7 @@
 * Improved compile time check
 * Modified timestamp timer drivers to allow use of inline logging functions
 * Updated Readme files
+
+### 1.01.00 - 2025-02-16
+* Added logging of messages on unlined addresses for processors that do not support unlined addressing in hardware.
+* Added conditional translation option for an even smaller data logging code footprint.
