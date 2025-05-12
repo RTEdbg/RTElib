@@ -33,7 +33,7 @@
  *          this also disables the DWT unit with the cycle counter. This causes the
  *          DWT->CYCCNT counter (the timestamp counter) to stop after data transfer
  *          with the JLink.exe command line application. This can be avoided by
- *          transferring data with the RTEgdbData application or by starting the J-Link
+ *          transferring data with the RTEgetData application or by starting the J-Link
  *          GDB server and keeping it running while testing the embedded system.
  *          See also: https://kb.segger.com/J-Link_Cortex-M_application_uses_cycle_counter
  *

@@ -17,8 +17,8 @@ All data logging functions are contained in the file *rtedbg.c*. See the comment
 **The library is ready for use** on devices with an ARM Cortex-M core and other little-endian 32-bit devices. To port the RTEdbg library to a new microcontroller family, use one of the two generic drivers suitable for the CPU core (preferably the *rtedbg_generic_atomic.h* if the core supports atomic/mutex instructions) and add a timestamp timer driver suitable for your hardware.
 
 ## How to contribute or get help
-Follow the [Contributing Guidelines](https://github.com/RTEdbg/RTEdbg/blob/master/docs/CONTRIBUTING.md) for bug reports and feature requests regarding the RTEdbg library. 
-Please use [RTEdbg.freeforums.net](https://rtedbg.freeforums.net/) for general discussions about the RTEdbg toolkit.
+Follow the [Contributing Guidelines](https://github.com/RTEdbg/RTEdbg/blob/master/docs/CONTRIBUTING.md) for bug reports and feature requests regarding the RTEdbg library. Follow the [Discussions Guidelines](https://docs.github.com/en/discussions/guides/best-practices-for-community-conversations-on-github) for general discusion about this repository.
+Use [RTEdbg.freeforums.net](https://rtedbg.freeforums.net/) for general discussion about the RTEdbg toolkit.
 
 When asking a support question, be clear and take the time to explain your problem properly. If your problem is not strictly related to this project, we recommend that you use [Stack Overflow](https://stackoverflow.com/), [r/Embedded](https://www.reddit.com/r/embedded/) or similar question-and-answer website instead. First, check if the [RTEdbg manual](https://github.com/RTEdbg/RTEdbg/releases/download/Documentation/RTEdbg.library.and.tools.manual.pdf) already contains an answer to your question or a solution to your problem.
 
