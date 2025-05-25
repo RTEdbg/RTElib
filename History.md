@@ -27,3 +27,6 @@
 ### 1.01.00 - 2025-02-16
 * Added logging of messages on unlined addresses for processors that do not support unlined addressing in hardware.
 * Added conditional translation option for an even smaller data logging code footprint.
+
+### 1.01.00 - 2025-05-23
+* Timestamp [timer driver](https://github.com/RTEdbg/RTElib/tree/master/Portable/Timer/ESP32/rtedbg_timer_esp32.h) for the ESP32 and [instructions](https://github.com/RTEdbg/RTElib/tree/master/Portable/Timer/ESP32/Readme.md) added.
